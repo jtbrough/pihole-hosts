@@ -24,6 +24,6 @@ jobs:
           sort firebog-ticked-hosts.tmp | uniq | sed 's/^/0.0.0.0 /g' | tail -n +2 > firebog-ticked-hosts
           git config user.name github-actions
           git config user.email github-actions@github.com
-          git add hosts
+          git add firebog-ticked-hosts
           git commit --allow-empty --file commit.txt
           git push
