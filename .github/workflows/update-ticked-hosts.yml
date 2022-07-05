@@ -18,10 +18,10 @@ jobs:
           echo -e 'Automatic hosts update\n' >> commit.txt
           echo 'Sources:' >> commit.txt
           for URL in $(curl -s 'https://v.firebog.net/hosts/lists.php?type=tick'); do
-            curl -s "${URL}" | sed 's/\(0\.0\.0\.0\|127\.0\.0\.1\|::1\)\s*//g' | sed 's/\s*#.*//g' | sed '/^localhost$/d' | sed '/^$/d' >> ticked-hosts.tmp
+            curl -s "${URL}" | sed 's/\(0\.0\.0\.0\|127\.0\.0\.1\|::1\)\s*//g' | sed 's/\s*#.*//g' | sed '/^localhost$/d' | sed '/^$/d' >> firebog-ticked-hosts.tmp
             echo "  - '${URL}'" >> commit.txt
           done
-          sort ticked-hosts.tmp | uniq | sed 's/^/0.0.0.0 /g' | tail -n +2 > hosts
+          sort firebog-ticked-hosts.tmp | uniq | sed 's/^/0.0.0.0 /g' | tail -n +2 > firebog-ticked-hosts
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add hosts
