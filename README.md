@@ -1,3 +1,5 @@
+[![Update ticked hosts from firebog.net](https://github.com/jtbrough/pihole-hosts/actions/workflows/update-ticked-hosts.yml/badge.svg)](https://github.com/jtbrough/pihole-hosts/actions/workflows/update-ticked-hosts.yml)
+
 # pihole-hosts
 Nightly aggregated host blocklist compiled via GitHub Actions
 
