@@ -24,8 +24,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           tmp="$(mktemp)"
           commit_msg="$(mktemp)"
+          trap 'rm -f "$tmp" "$commit_msg"' EXIT
 
           {
             echo "Automatic hosts update"
@@ -34,12 +36,12 @@ jobs:
           } > "$commit_msg"
 
           while IFS= read -r url; do
-            url="$(echo "$url" | sed -E "s/^[[:space:]]+//; s/[[:space:]]+$//")"
+            url="$(sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//' <<<"$url")"
             [ -n "$url" ] || continue
             [[ "$url" =~ ^# ]] && continue
             echo "  - '$url'" >> "$commit_msg"
 
-            if ! curl -fsSL "$url" 2>/dev/null | sed -E \
+            if ! curl -fsSL --retry 3 --retry-delay 2 --retry-all-errors "$url" | sed -E \
               -e 's/^(0\.0\.0\.0|127\.0\.0\.1|::1)[[:space:]]+//' \
               -e 's/[[:space:]]*#.*$//' \
               -e '/^localhost$/d' \
@@ -51,8 +53,6 @@ jobs:
           done < <(curl -fsSL --retry 3 --retry-delay 2 --retry-all-errors 'https://v.firebog.net/hosts/lists.php?type=tick')
 
           sort -u "$tmp" | sed 's/^/0.0.0.0 /' > firebog-ticked-hosts
-
-          rm -f "$tmp"
 
           if git diff --quiet -- firebog-ticked-hosts; then
             echo "No changes detected."
