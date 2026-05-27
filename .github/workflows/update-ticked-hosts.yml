@@ -24,6 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          shopt -s extglob
 
           tmp="$(mktemp)"
           commit_msg="$(mktemp)"
@@ -35,15 +36,21 @@ jobs:
           } > "$commit_msg"
 
           while IFS= read -r url; do
+            url="${url##+([[:space:]])}"
+            url="${url%%+([[:space:]])}"
             [ -n "$url" ] || continue
+            [[ "$url" =~ ^# ]] && continue
             echo "  - '$url'" >> "$commit_msg"
 
-            curl -fsSL "$url" | sed -E \
+            if ! curl -fsSL "$url" | sed -E \
               -e 's/^(0\.0\.0\.0|127\.0\.0\.1|::1)[[:space:]]+//' \
               -e 's/[[:space:]]*#.*$//' \
               -e '/^localhost$/d' \
               -e '/^[[:space:]]*$/d' \
-              >> "$tmp"
+              -e '/[^A-Za-z0-9._-]/d' \
+              >> "$tmp"; then
+              echo "Warning: failed to fetch '$url'" >&2
+            fi
           done < <(curl -fsSL 'https://v.firebog.net/hosts/lists.php?type=tick')
 
           sort -u "$tmp" | sed 's/^/0.0.0.0 /' > firebog-ticked-hosts
